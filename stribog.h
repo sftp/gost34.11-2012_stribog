@@ -77,8 +77,8 @@ void LP(u8 *vect)
 	/*
 	 * subvectors of 512-bit vector (64*8 bits)
 	 * an subvector is start at [j*8], its componenst placed
-	 * with step of 8 bytes step (due to this function is 
-	 * composition of P and L) and have length of 64 bits (8*8 bits)
+	 * with step of 8 bytes (due to this function is composition
+	 * of P and L) and have length of 64 bits (8*8 bits)
 	 */
 	for (i = 0; i < 8; i++) {
 		c = 0;
