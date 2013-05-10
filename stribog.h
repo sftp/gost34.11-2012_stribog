@@ -64,50 +64,37 @@ void S(u8 *vect)
 	}
 }
 
-void P(u8 *vect)
-{
-	u8 i;
-	u8 j;
-	u8 tmp;
-
-	for (i = 0; i < 8; i++) {
-		for (j = 0; j < i; j++) {
-			tmp = vect[i*8+j];
-			vect[i*8+j] = vect[tau[i*8+j]];
-			vect[tau[i*8+j]] = tmp;
-		}
-	}
-}
-
-void L(u8 *vect)
+void LP(u8 *vect)
 {
 	u8 i, j, k;
+
+	u8 tmp[64];
+
+	memcpy(tmp, vect, 64);
 
 	u64 c;
 
 	/*
 	 * subvectors of 512-bit vector (64*8 bits)
-	 * an subvector is start at [i*8] and have length of 64 bits (8*8 bits)
+	 * an subvector is start at [j*8], its componenst placed
+	 * with step of 8 bytes step (due to this function is 
+	 * composition of P and L) and have length of 64 bits (8*8 bits)
 	 */
 	for (i = 0; i < 8; i++) {
 		c = 0;
 
 		/*
 		 * 8-bit components of 64-bit subvectors
-		 * components is start at [i*8+j]
+		 * components is placed at [j*8+i]
 		 */
 		for (j = 0; j < 8; j++) {
 
-			/* bit index of 8-bit components */
+			/* bit index of current 8-bit component */
 			for (k = 0; k < 8; k++) {
 
 				/* check if current bit is set */
-				if (vect[i*8+j] & 0x80 >> k) {
-					/*
-					 * look into bit j*8+k
-					 */
+				if (tmp[j*8+i] & 0x80 >> k)
 					c ^= A[j*8+k];
-				}
 			}
 		}
 
@@ -134,15 +121,13 @@ void E(u8 *dst, u8 *k, u8 *m)
 
 	for (i = 1; i < 13; i++) {
 		S(dst);
-		P(dst);
-		L(dst);
+		LP(dst);
 
 		/* next K */
 		X(K, K, C[i-1]);
 
 		S(K);
-		P(K);
-		L(K);
+		LP(K);
 
 		X(dst, K, dst);
 	}
@@ -156,8 +141,7 @@ void g_N(u8 *h, u8 *N, u8 *m)
 	xor512(h, h, N);
 
 	S(h);
-	P(h);
-	L(h);
+	LP(h);
 
 	E(h, h, m);
 
@@ -171,8 +155,7 @@ void g_0(u8 *h, u8 *m)
 	memcpy(hash, h, BLOCK_SIZE);
 
 	S(h);
-	P(h);
-	L(h);
+	LP(h);
 
 	E(h, h, m);
 
